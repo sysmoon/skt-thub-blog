@@ -1,0 +1,56 @@
+### azure login
+az login -u yourid@outlook.kr
+
+### select subscription
+az account list --all 
+az account set --subscription "Microsoft Azure"
+az account show
+
+# pre define
+RGs='storage-quickstart-resource-group'
+CONTAINER_NAME='tv-media-storage'
+export AZURE_STORAGE_ACCOUNT="yourstorageaccountname"
+export AZURE_STORAGE_ACCESS_KEY="xxxxyyyyzzzz=="
+
+# create resource group
+az group create \
+    --name $RGs \
+    --location koreacentral
+
+# list location
+az account list-locations
+az account list-locations \
+    --query "[].{Region:name}" \
+    --out table
+
+# create storage account
+az storage account create \
+    --name $AZURE_STORAGE_ACCOUNT \
+    --resource-group $RGs \
+    --location koreacentral \
+    --sku Standard_LRS \
+    --kind StorageV2
+
+# get storage account keys
+az storage account keys list \
+    --account-name tvstorageaccountmedia \
+    --resource-group $RGs \
+    --output table
+
+# create container
+az storage container create --name $CONTAINER_NAME 
+
+# upload blob
+az storage blob upload \
+    --container-name $CONTAINER_NAME \
+    --name blobName \
+    --file ~/Downloads/upload_file.apk
+
+# delete blob
+az storage blob delete --container-name $CONTAINER_NAME --name upload_file.apk 
+
+# list blob
+az storage blob list --container-name $CONTAINER_NAME --output table
+
+# upload blob using azcopy (azcopy 10)
+./azcopy cp "/Users/sysmoon/dev/workspace/azure/azcli/test.azcli" "https://tvstorageaccountmedia.blob.core.windows.net/tv-media-storage?sas_token" --recursive=true
